@@ -1,0 +1,18 @@
+version: '3'
+services:
+  mysql:
+    image: mysql
+    platform: linux/arm64/v8
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: codecamp
+      TZ: America/Denver
+
+volumes:
+  mysqldata:
+    driver: local
