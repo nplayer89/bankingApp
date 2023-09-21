@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"banking/errs"
 	"database/sql"
 	"log"
 	"time"
@@ -34,16 +35,20 @@ func (d CustomerRepositoryDB) FindAll() ([]Customer, error) {
 	return customers, nil
 }
 
-func (d CustomerRepositoryDB) ById(id string) (*Customer, error){
-	
+func (d CustomerRepositoryDB) ById(id string) (*Customer, *errs.AppError) {
+
 	customerSql := "SELECT customer_id, name, city, zipcode, date_of_birth, status FROM customers WHERE customer_id = ?"
 
 	row := d.client.QueryRow(customerSql, id)
 	var c Customer
 	err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 	if err != nil {
-		log.Printf("Error while scanning customer: %v\n", err.Error())
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Customer not found")
+		} else {
+			log.Printf("Error while scanning customer: %v\n", err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
 	}
 	return &c, nil
 }
